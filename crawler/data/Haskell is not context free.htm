@@ -1,0 +1,113 @@
+<!DOCTYPE html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<base href="http://trevorjim.com/haskell-is-not-context-free/"><div style="background:#fff;border:1px solid #999;margin:-1px -1px 0;padding:0;"><div style="background:#ddd;border:1px solid #999;color:#000;font:13px arial,sans-serif;font-weight:normal;margin:12px;padding:8px;text-align:left">This is Google&#39;s cache of <a href="http://trevorjim.com/haskell-is-not-context-free/" style="text-decoration:underline;color:#00c">http://trevorjim.com/haskell-is-not-context-free/</a>. It is a snapshot of the page as it appeared on Mar 7, 2013 14:02:22 GMT. The <a href="http://trevorjim.com/haskell-is-not-context-free/" style="text-decoration:underline;color:#00c">current page</a> could have changed in the meantime. <a href="http://support.google.com/websearch/bin/answer.py?hl=en&amp;p=cached&amp;answer=1687222" style="text-decoration:underline;color:#00c">Learn more</a><br>Tip: To quickly find your search term on this page, press <b>Ctrl+F</b> or <b>⌘-F</b> (Mac) and use the find bar.<br><br><div style="float:right"><a href="http://webcache.googleusercontent.com/search?q=cache:omT6PTEVskIJ:trevorjim.com/haskell-is-not-context-free/&amp;hl=en&amp;client=firefox-a&amp;hs=deP&amp;gl=us&strip=1" style="text-decoration:underline;color:#00c">Text-only version</a></div>
+<div>&nbsp;</div></div></div><div style="position:relative">
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width" />
+<link href="/style.css" type="text/css" rel="stylesheet" />
+<link rel="alternate" type="application/rss+xml" href="http://trevorjim.com/feed.xml" title="Trevor Jim">
+<title>Haskell is not context free</title>
+</head>
+<body>
+<div id="page">
+<div id="header">
+<div id="home"><a href="/">TREVOR JIM</a></div>
+<div id="onward">
+<a href="/parsing-not-solved/">&rarr;</a></div>
+</div>
+<div id="content">
+<div class="post">
+<div class="posttitle">Haskell is not context free</div>
+<div class="date">October 10, 2012&nbsp;&nbsp;<a href="/haskell-is-not-context-free/">&infin;</a></div>
+<p>(Part 2 of a series; see <a href="/python-is-not-context-free/">part 1</a>.)</p>
+
+<p>Haskell, like Python, uses indentation to indicate grammatical
+structure, so we should expect that it requires context-sensitive
+parsing.</p>
+
+<p>Showing this is a little tricky because it&rsquo;s not clear exactly what
+constitutes Haskell syntax.  The Haskell 2010 Language Report
+&ldquo;specifies&rdquo; the indentation rules
+<a href="http://www.haskell.org/onlinereport/haskell2010/haskellch2.html#x7-210002.7">here</a>
+and
+<a href="http://www.haskell.org/onlinereport/haskell2010/haskellch10.html#x17-17800010.3">here</a>,
+but it&rsquo;s well known among Haskell insiders that <em>no one implements
+the spec</em>.  For example,
+Augustsson <a href="http://www.mail-archive.com/haskell-cafe@haskell.org/msg58783.html">said
+in 2009</a>,</p>
+
+<blockquote>
+<p>Implementing exactly Haskell&rsquo;s rule for indentation is incredibly
+hard.  In fact, no known Haskell compiler gets it right.</p>
+</blockquote>
+
+<p>Think about it: the Haskell community, consisting largely of academic
+researchers concerned with mathematics, logics, theorem proving, pure
+functional programming, semantics-preserving compilation, type
+systems, and so on, <em>is unable to implement their own specification</em>.
+This is like a man wearing a tuxedo, walking around with toilet paper
+stuck to his shoe.  <em>For fifteen years!</em> It would be funny if the same
+people weren&rsquo;t convinced that <a href="/the-monadic-morass">monadic
+parser combinators solve all problems in parsing</a>.  As it is, I
+find it maddening.</p>
+
+<p>Back to the point at hand.  Since no one implements the spec, it
+doesn&rsquo;t make sense to see whether the spec is context sensitive; that
+would be like flogging a dead horse, and, moreover, a dead horse that
+was never actually alive in the first place.  However, the
+specification does provide a useful clue:</p>
+
+<blockquote>
+<p>The layout rule matches only those open braces that it has inserted;
+an explicit open brace must be matched by an explicit close
+brace. <em>Within these explicit open braces, no layout processing is
+performed for constructs outside the braces, even if a line is
+indented to the left of an earlier implicit open brace.</em></p>
+</blockquote>
+
+<p>(Emphasis mine.)</p>
+
+<p>Here we see that Haskell intends to use rules similar to Python, which
+ignores indentation within parentheses, brackets and braces.  It was
+exactly this rule that forced parsing to be intertwined with
+context-sensitive lexing in Python.</p>
+
+<p>Let&rsquo;s assume for the moment that all Haskell compilers implement the
+same syntax (which is not the syntax of the Haskell 2010 Language
+Report), so we can look at a single implementation.  </p>
+
+<p>I&rsquo;ll use GHC as my example.
+<a href="http://hackage.haskell.org/trac/ghc/browser/compiler/parser/ParserCore.y">Here</a>
+is the parser (which of course is not written using monadic parser combinators),
+and
+<a href="">here</a> is the lexer.  Look closely at the lexer and you
+can see that it is maintaining a stack of lexical contexts that get
+pushed and popped at braces, and which interact with layout handling.
+In short, it uses the same strategy as Python&rsquo;s official compiler,
+and <a href="/python-is-not-context-free/">by my previous
+argument</a>, we can conclude that Haskell is not context free.</p>
+
+
+<div id="navigation">
+<div id="newer">
+<a href="/python-is-not-context-free/">&larr; Newer</a></div>
+<div id="older">
+<a href="/parsing-not-solved/">Older &rarr;</a></div>
+</div>
+<div id="footer">
+<a href="/research">research</a>
+&nbsp; &nbsp;
+<a href="/papers">papers</a>
+&nbsp; &nbsp;
+<a href="/projects">projects</a>
+&nbsp; &nbsp;
+<a href="/archive">archived posts</a>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

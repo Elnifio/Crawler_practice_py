@@ -1,0 +1,145 @@
+<!DOCTYPE html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<base href="http://trevorjim.com/is-java-context-free/"><div style="background:#fff;border:1px solid #999;margin:-1px -1px 0;padding:0;"><div style="background:#ddd;border:1px solid #999;color:#000;font:13px arial,sans-serif;font-weight:normal;margin:12px;padding:8px;text-align:left">This is Google&#39;s cache of <a href="http://trevorjim.com/is-java-context-free/" style="text-decoration:underline;color:#00c">http://trevorjim.com/is-java-context-free/</a>. It is a snapshot of the page as it appeared on Mar 13, 2013 06:46:30 GMT. The <a href="http://trevorjim.com/is-java-context-free/" style="text-decoration:underline;color:#00c">current page</a> could have changed in the meantime. <a href="http://support.google.com/websearch/bin/answer.py?hl=en&amp;p=cached&amp;answer=1687222" style="text-decoration:underline;color:#00c">Learn more</a><br>Tip: To quickly find your search term on this page, press <b>Ctrl+F</b> or <b>⌘-F</b> (Mac) and use the find bar.<br><br><div style="float:right"><a href="http://webcache.googleusercontent.com/search?q=cache:jab8aKrz7XwJ:trevorjim.com/is-java-context-free/&amp;hl=en&amp;client=firefox-a&amp;hs=3bP&amp;gl=us&strip=1" style="text-decoration:underline;color:#00c">Text-only version</a></div>
+<div>&nbsp;</div></div></div><div style="position:relative">
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width" />
+<link href="/style.css" type="text/css" rel="stylesheet" />
+<link rel="alternate" type="application/rss+xml" href="http://trevorjim.com/feed.xml" title="Trevor Jim">
+<title>Is Java context free?</title>
+</head>
+<body>
+<div id="page">
+<div id="header">
+<div id="home"><a href="/">TREVOR JIM</a></div>
+<div id="onward">
+<a href="/python-is-not-context-free/">&rarr;</a></div>
+</div>
+<div id="content">
+<div class="post">
+<div class="posttitle">Is Java context free?</div>
+<div class="date">October 19, 2012&nbsp;&nbsp;<a href="/is-java-context-free/">&infin;</a></div>
+<p>(Part 3 of a series; see <a href="/python-is-not-context-free/">part
+1</a> and <a href="/haskell-is-not-context-free/">part 2</a>.)</p>
+
+<p>This might be a surprising question to most parser experts: is the
+syntax of Java a context free language?  I myself am inclined to say
+that it is, but it&rsquo;s actually not straightforward.</p>
+
+<p><em>The Java Language Specification</em> (Gosling, Joy, Steele 1996)
+includes three &ldquo;context-free grammars&rdquo;:</p>
+
+<ol>
+<li>the lexical grammar;</li>
+<li>the syntactic grammar;</li>
+<li>an LALR(1) version of the syntactic grammar.</li>
+</ol>
+
+<p>These grammars are used to define a lexer and parser in the standard
+methodology:</p>
+
+<p><p align=center>
+<img width="60%" src="/is-java-context-free/lexer-parser.svg"></p>
+
+<p>The lexical grammar defines the lexer, and either of the two syntactic
+grammars can be used to define the parser.  No lexical feedback, and a
+bog-standard lexer, about as vanilla as you can get.</p>
+
+<p>However, let&rsquo;s look at these &ldquo;context-free grammars&rdquo; more
+closely.</p>
+
+<ol>
+<li><p>The lexical grammar is defined by grammar rules that look like
+Chomsky&rsquo;s definition of context-free grammar rules, but they
+are <em>interpreted</em> differently.  If we interpret them as a true
+context-free grammar then that grammar is highly ambiguous.  For
+example, by the standard definition of context-free grammars,
+&ldquo;ifthen&rdquo; could be interpreted as (keyword)
+&ldquo;if&rdquo; followed by (keyword) &ldquo;then&rdquo;, or as
+(identifier) &ldquo;ifthen&rdquo;, or as (identifier)
+&ldquo;if&rdquo; followed by (identifier) &ldquo;then&rdquo;, etc.</p>
+
+<p>This isn&rsquo;t what is intended, of course.  Ambiguities are supposed to
+be resolved in the usual way: the rules are (implicitly) ordered and
+we use a first-match, longest-match rule to break ties.
+Consequently, keywords get precedence over identifiers, and
+whitespace becomes mandatory between certain tokens.  All perfectly
+standard, but this is <em>not</em> context-free semantics.</p>
+
+<p>It&rsquo;s sloppy terminology.</p></li>
+<li><p>The syntactic grammar is presented over several chapters.  It is
+described as &ldquo;very similar to the LALR(1) grammar but more
+readable&rdquo;.  That means it requires more than one token of lookahead
+to parse and (I think) the authors hope that it describes the same
+language as the grammar that will be used to build actual parsers.</p>
+
+<p>The fact that the authors believe that humans and parser generators
+need a different presentation of the syntax, and that they aren&rsquo;t
+sure whether their two definitions are equivalent deserves comment,
+but I&rsquo;ll pass on that for now.</p></li>
+<li><p>The LALR(1) grammar is not as readable as the first grammar (which
+is &ldquo;much better for exposition&rdquo;) but it has been mechanically
+verified to require only a single token of lookahead.</p>
+
+<p>This would seem to be definitive.  What goes unsaid, however, is
+that the grammar has shift-reduce conflicts.  That is, the grammar
+is ambiguous, and the parser applies some heuristics to resolve
+ambiguities.</p>
+
+<p>The canonical example is the if-then-else statement.  The program fragment
+<pre>
+if (c == &#39;0&#39;) x++;
+if (c == &#39;1&#39;) x--;
+else y++;
+</pre></p>
+
+<p>has more than one parse according to the LALR(1) grammar: the &ldquo;else&rdquo;
+could be associated with the first &ldquo;if&rdquo; or the second &ldquo;if&rdquo;.  This
+shows up as a shift-reduce conflict that the parser resolves as a
+shift, which means that the &ldquo;else&rdquo; gets associated with the closer,
+second &ldquo;if&rdquo;.</p>
+
+<p>This has no effect on the language <em>accepted</em> by the grammar, so in
+that narrow sense the syntax is context free.</p>
+
+<p>However, in practice we care about the actual parse tree determined
+by the grammar.  In that sense, I think that for us to call the
+syntax context free we require an <em>unambiguous</em> grammar.  The
+LALR(1) grammar doesn&rsquo;t reach that standard.</p>
+
+<p>As far as I know it&rsquo;s an open question whether there is an
+unambiguous context-free grammar for Java.  It&rsquo;s known that you can
+write an unambiguous grammar for if-then-else statements, but it&rsquo;s
+also known that an ambiguous grammar plus disambiguating rules can
+result in a non-context-free language.</p></li>
+</ol>
+
+<p>There&rsquo;s nothing wrong with Java&rsquo;s syntax, or even its specification.
+The point is that it doesn&rsquo;t use context-free grammars.  Instead of
+pretending that parsing is solved by context-free parsers, we should
+instead study what is used in practice.</p>
+
+
+<div id="navigation">
+<div id="newer">
+<a href="/a-specification-for-markdown/">&larr; Newer</a></div>
+<div id="older">
+<a href="/python-is-not-context-free/">Older &rarr;</a></div>
+</div>
+<div id="footer">
+<a href="/research">research</a>
+&nbsp; &nbsp;
+<a href="/papers">papers</a>
+&nbsp; &nbsp;
+<a href="/projects">projects</a>
+&nbsp; &nbsp;
+<a href="/archive">archived posts</a>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

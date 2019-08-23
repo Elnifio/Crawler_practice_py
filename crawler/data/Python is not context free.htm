@@ -1,0 +1,160 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<base href="http://trevorjim.com/python-is-not-context-free/"><div style="background:#fff;border:1px solid #999;margin:-1px -1px 0;padding:0;"><div style="background:#ddd;border:1px solid #999;color:#000;font:13px arial,sans-serif;font-weight:normal;margin:12px;padding:8px;text-align:left">This is Google&#39;s cache of <a href="http://trevorjim.com/python-is-not-context-free/" style="text-decoration:underline;color:#00c">http://trevorjim.com/python-is-not-context-free/</a>. It is a snapshot of the page as it appeared on Mar 12, 2013 10:20:24 GMT. The <a href="http://trevorjim.com/python-is-not-context-free/" style="text-decoration:underline;color:#00c">current page</a> could have changed in the meantime. <a href="http://support.google.com/websearch/bin/answer.py?hl=en&amp;p=cached&amp;answer=1687222" style="text-decoration:underline;color:#00c">Learn more</a><br>Tip: To quickly find your search term on this page, press <b>Ctrl+F</b> or <b>⌘-F</b> (Mac) and use the find bar.<br><br><div style="float:right"><a href="http://webcache.googleusercontent.com/search?q=cache:H201FnzafZkJ:trevorjim.com/python-is-not-context-free/&amp;hl=en&amp;client=firefox-a&amp;hs=QGk&amp;gl=us&strip=0" style="text-decoration:underline;color:#00c">Full version</a></div>
+<div>&nbsp;</div></div></div><div style="position:relative">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width" />
+
+
+<title>Python is not context free</title>
+</head>
+<body>
+<div id="page">
+<div id="header">
+<div id="home"><a href="/">TREVOR JIM</a></div>
+<div id="onward">
+<a href="/haskell-is-not-context-free/">&rarr;</a></div>
+</div>
+<div id="content">
+<div class="post">
+<div class="posttitle">Python is not context free</div>
+<div class="date">October 10, 2012&nbsp;&nbsp;<a href="/python-is-not-context-free/">&infin;</a></div>
+<p>I&rsquo;ve <a href="/parsing-not-solved/">mentioned</a> that most
+programming languages are not context-free languages.  Let&rsquo;s take
+<a href="http://python.org/">Python</a> as a first example.</p>
+
+<p>The standard way to show that a language is not context free is to use
+<a href="http://en.wikipedia.org/wiki/Ogden%27s_lemma">Ogden&rsquo;s
+Lemma</a>.  I won&rsquo;t bother to do so here.  It&rsquo;s pretty obvious that
+most programming languages are not context free if you consider them
+as languages over sequences of characters.  It is more typical
+to consider them as languages over sequences of tokens:</p>
+
+<p><p align=center>
+</p>
+
+<p>The diagram above shows the usual two-stage process for parsing a
+programming language: a lexer transforms a sequence of characters into
+a sequence of tokens that is fed into a parser.  We can then ask
+whether the language of tokens accepted by the parser is context free.</p>
+
+<p>The problem with this is that nothing is said about the power of the
+lexer.  If the lexer is arbitrarily powerful, it can effectively do
+all of the parsing, and emit a complete, unambiguous parse tree as a
+sequence of tokens.  This can be an interesting and useful technique
+(I have <a href="/papers/ldta-2011.pdf">used it myself</a>), but it
+makes applying Ogden&rsquo;s Lemma to the parser component a useless
+exercise.</p>
+
+<p>Let&rsquo;s see how this plays out for Python.  The interesting thing about
+Python&rsquo;s syntax is, of course, its use of indentation to indicate
+program structure.
+<pre>
+    for i in x:
+      for j in y:
+        print j
+        print i
+      print
+</pre>
+Here the indentation indicates that print i belongs to the
+body of the inner for loop, while the final print belongs
+to the body of the outer loop.  Notice that the indentation of the final
+print has to line up with the indentation of the third
+previous line&mdash;clearly this is a context-sensitive feature.
+Furthermore, a typical lexer will strip all whitespace from the token
+stream, so the parser never sees it.  Something unusual must be going
+on in Python&rsquo;s parser and lexer.</p>
+
+<p>There is an additional complication:
+Python <a href="http://docs.python.org/reference/lexical_analysis.html#implicit-line-joining">ignores
+indentation inside parentheses, square brackets and curly braces</a>.</p>
+
+<p>I can see two obvious ways to handle this.</p>
+
+<h3>Handle everything in the lexer</h3>
+
+<p>In the official Python implementation, the lexer keeps track of
+indentation by treating whitespace containing newlines specially.  If
+it sees increased indentation it issues a special INDENT token.  If it
+sees decreased indentation it issues a DEDENT token.  If the
+indentation is the same, it issues a NEWLINE token.  The lexer keeps a
+stack of indentation levels that it pushes and pops as indentation
+changes.  Moreover, the lexer keeps track of the nesting level of
+parentheses, square brackets, and curly braces so that it can omit
+NEWLINE, INDENT, and DEDENT tokens as necessary.  Given this lexer,
+the parser is a context-free, LL(2) parser
+(see <a href="http://www.antlr.org/grammar/1200715779785/Python.g">here</a>).</p>
+
+<p>In this case, although the parser component is a context-free parser,
+I don&rsquo;t think that is sufficient to call Python a context-free
+language.  The lexer is too powerful.</p>
+
+<p>A typical lexer is based on first-match, longest-match regular
+expressions.  It is a finite state machine plus a single counter
+(holding the index in the input of the longest match so far).</p>
+
+<p>The Python lexer keeps, in addition, a stack of counters for
+the indentation levels.  Moreover, it keeps track of the nesting of
+parentheses; and the language of balanced parentheses is the
+canonical non-regular, context-free language!  So in this design,
+there is no clear separation of the context-free part and the
+context-sensitive part, and the context-sensitive part goes well
+beyond what a typical lexer can do.</p>
+
+<h3>Lexical feedback</h3>
+
+<p>A second way of handling Python&rsquo;s indentation is to use lexical
+feedback.  Instead of using the usual lexer-parser setup seen
+above, we add a feedback loop from the parser to the lexer:</p>
+
+<p><p align=center>
+</p>
+
+<p>The feedback is used by the parser to tell the lexer the nesting level
+of parentheses; the lexer can then handle the indentation just as in
+the last strategy.</p>
+
+<p>The advantage of this approach is that the nesting of parentheses is
+tracked in only one place, the parser, while in the previous approach
+both the lexer and parser tracked nesting.</p>
+
+<p>I think, however, that this approach makes it even more obvious that
+the context-free part of parsing and the context-sensitive part are
+intertwined.  That makes the language context sensitive, in my
+opinion.</p>
+
+<h3>So what?</h3>
+
+<p>Does it matter that Python is not context free, given that we have a
+relatively nice parser for it?</p>
+
+<p>Yes, it does matter, because Python is just one of many examples.
+Most languages of interest are context sensitive, and yet we are
+trying to use inappropriate tools (context-free grammars and
+context-free parser generators) to specify and parse them.  This leads
+to bad specifications and bad implementations.</p>
+
+
+<div id="navigation">
+<div id="newer">
+<a href="/is-java-context-free/">&larr; Newer</a></div>
+<div id="older">
+<a href="/haskell-is-not-context-free/">Older &rarr;</a></div>
+</div>
+<div id="footer">
+<a href="/research">research</a>
+&nbsp; &nbsp;
+<a href="/papers">papers</a>
+&nbsp; &nbsp;
+<a href="/projects">projects</a>
+&nbsp; &nbsp;
+<a href="/archive">archived posts</a>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>
