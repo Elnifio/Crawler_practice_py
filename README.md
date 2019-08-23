@@ -23,7 +23,7 @@ Separate_steps文件夹内部的所有代码运行内容和main.py内容相同�
 # Crawler_practice_python
 Using Python to download all files from COMP 455 website
 ***
-This project is served as a practice for intro to Python crawler.
+This project serves as a practice for intro to Python crawler.
 
 Running main.py after pulling this repo would start downloading data.
 
