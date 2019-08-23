@@ -1,7 +1,7 @@
-*中文版本*
+> *中文版本*
 # Crawler_practice_python
-用Python爬取COMP455 website的所有文件
-***
+###### 用Python爬取COMP455 website的所有文件
+
 作为Python爬虫的练手项目。
 
 下载下来后直接运行main.py就可以开始抓取。
@@ -17,12 +17,12 @@ Separate_steps文件夹内部的所有代码运行内容和main.py内容相同�
 2. os
 3. re
 
-***
+# 
 
-*English Ver*
+> *English Ver*
 # Crawler_practice_python
-Using Python to download all files from COMP 455 website
-***
+###### Using Python to download all files from COMP 455 website
+
 This project serves as a practice for intro to Python crawler.
 
 Running main.py after pulling this repo would start downloading data.
@@ -33,10 +33,10 @@ All codes in './Separate_steps' serves the same purpose as main.py
 
 Might update a detailed analysis of this project if possible.
 
-***
+# 
 ### Required modules
 1. requests
 2. os
 3. re
 
-***
+# 
